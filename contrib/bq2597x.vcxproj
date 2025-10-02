@@ -1,14 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug|x64">
-      <Configuration>Debug</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|x64">
-      <Configuration>Release</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|ARM64">
       <Configuration>Debug</Configuration>
       <Platform>ARM64</Platform>
@@ -24,29 +16,10 @@
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <MinimumVisualStudioVersion>12.0</MinimumVisualStudioVersion>
     <Configuration>Debug</Configuration>
-    <Platform Condition="'$(Platform)' == ''">x64</Platform>
+    <Platform Condition="'$(Platform)' == ''">ARM64</Platform>
     <RootNamespace>bq2597x</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.26100.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <TargetVersion>Windows10</TargetVersion>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
-    <ConfigurationType>Driver</ConfigurationType>
-    <DriverType>KMDF</DriverType>
-    <DriverTargetPlatform>Universal</DriverTargetPlatform>
-    <Driver_SpectreMitigation>false</Driver_SpectreMitigation>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <TargetVersion>Windows10</TargetVersion>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
-    <ConfigurationType>Driver</ConfigurationType>
-    <DriverType>KMDF</DriverType>
-    <DriverTargetPlatform>Universal</DriverTargetPlatform>
-    <Driver_SpectreMitigation>false</Driver_SpectreMitigation>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="Configuration">
     <TargetVersion>Windows10</TargetVersion>
     <UseDebugLibraries>true</UseDebugLibraries>
@@ -76,18 +49,6 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
-    <TargetName>bq2597x</TargetName>
-    <IncludePath>$(IntDir);$(SolutionDir)..\include;$(IncludePath)</IncludePath>
-    <IntDir>..\intermediate\$(Platform)\$(ConfigurationName)\</IntDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
-    <TargetName>bq2597x</TargetName>
-    <IncludePath>$(IntDir);$(SolutionDir)..\include;$(IncludePath)</IncludePath>
-    <IntDir>..\intermediate\$(Platform)\$(ConfigurationName)\</IntDir>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
     <TargetName>bq2597x</TargetName>
@@ -100,56 +61,6 @@
     <IncludePath>$(IntDir);$(SolutionDir)..\include;$(IncludePath)</IncludePath>
     <IntDir>..\intermediate\$(Platform)\$(ConfigurationName)\</IntDir>
   </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <ClCompile>
-      <TreatWarningAsError>false</TreatWarningAsError>
-      <WarningLevel>Level4</WarningLevel>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);DRIVER;_WIN32_WINNT=0x602;_WINNT_;_SAMPLE_DESCRIPTOR_</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);.;$(DDK_INC_PATH);$(DDK_INC_PATH)\wdm\</AdditionalIncludeDirectories>
-      <ExceptionHandling>
-      </ExceptionHandling>
-      <DisableSpecificWarnings>4146;4214;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <WppEnabled>true</WppEnabled>
-      <WppRecorderEnabled>true</WppRecorderEnabled>
-      <WppScanConfigurationData>$(SolutionDir)..\include\trace.h</WppScanConfigurationData>
-    </ClCompile>
-    <Midl>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);DRIVER;_WIN32_WINNT=0x602;_WINNT_;_SAMPLE_DESCRIPTOR_</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);.;$(DDK_INC_PATH);$(DDK_INC_PATH)\wdm\</AdditionalIncludeDirectories>
-    </Midl>
-    <ResourceCompile>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);DRIVER;_WINNT_;_SAMPLE_DESCRIPTOR_</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);.;$(DDK_INC_PATH);$(DDK_INC_PATH)\wdm\</AdditionalIncludeDirectories>
-    </ResourceCompile>
-    <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);$(DDK_LIB_PATH)\HidClass.lib</AdditionalDependencies>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <ClCompile>
-      <TreatWarningAsError>false</TreatWarningAsError>
-      <WarningLevel>Level4</WarningLevel>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);DRIVER;_WIN32_WINNT=0x602;_WINNT_;_SAMPLE_DESCRIPTOR_</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);.;$(DDK_INC_PATH);$(DDK_INC_PATH)\wdm\</AdditionalIncludeDirectories>
-      <ExceptionHandling>
-      </ExceptionHandling>
-      <DisableSpecificWarnings>4146;4214;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <WppEnabled>true</WppEnabled>
-      <WppRecorderEnabled>true</WppRecorderEnabled>
-      <WppScanConfigurationData>$(SolutionDir)..\include\trace.h</WppScanConfigurationData>
-    </ClCompile>
-    <Midl>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);DRIVER;_WIN32_WINNT=0x602;_WINNT_;_SAMPLE_DESCRIPTOR_</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);.;$(DDK_INC_PATH);$(DDK_INC_PATH)\wdm\</AdditionalIncludeDirectories>
-    </Midl>
-    <ResourceCompile>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);DRIVER;_WINNT_;_SAMPLE_DESCRIPTOR_</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);.;$(DDK_INC_PATH);$(DDK_INC_PATH)\wdm\</AdditionalIncludeDirectories>
-    </ResourceCompile>
-    <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);$(DDK_LIB_PATH)\HidClass.lib</AdditionalDependencies>
-    </Link>
-  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <ClCompile>
       <TreatWarningAsError>false</TreatWarningAsError>

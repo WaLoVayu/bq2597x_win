@@ -5,13 +5,13 @@
 
 /* feature configuration */
 unsigned int bat_ovp_th = 4550;        /* battery ovp threshold (mV) */
-unsigned int bat_ovp_alarm_th = 4525;  /* battery ovp alarm threshold (mV) */
-unsigned int bat_ocp_th = 8000;
-unsigned int bat_ocp_alarm_th = 7500;
+unsigned int bat_ovp_alarm_th = 4450;  /* battery ovp alarm threshold (mV) */
+unsigned int bat_ocp_th = 5000;
+unsigned int bat_ocp_alarm_th = 4500;
 unsigned int bus_ovp_th = 12000;        /* IIN ovp threshold (mV) */
 unsigned int bus_ovp_alarm_th = 11000;  /* IIN ovp alarm threshold (mV) */
-unsigned int bus_ocp_th = 3750;        /* IIN ocp threshold (mA) */
-unsigned int bus_ocp_alarm_th = 3500;  /* IIN ocp alarm threshold */
+unsigned int bus_ocp_th = 3500;        /* IIN ocp threshold (mA) */
+unsigned int bus_ocp_alarm_th = 3300;  /* IIN ocp alarm threshold */
 unsigned int bat_ucp_alarm_th = 2000;
 unsigned char bat_therm_th = 0x15;
 unsigned char bus_therm_th = 0x15;
@@ -23,15 +23,15 @@ unsigned int sense_resistor_mohm = 2;
 //ti,bq2597x_charger,bat-ovp-disable
 bool bat_ovp_disable = false;          /* disable battery voltage OVP */
 //ti,bq2597x_charger,bat-ovp-alarm-disable
-bool bat_ovp_alarm_disable = false;          /* disable battery voltage (float) regulation */
+bool bat_ovp_alarm_disable = true;          /* disable battery voltage (float) regulation */
 //ti,bq2597x_charger,bat-ocp-disable
-bool bat_ocp_disable = false;           /* disable input current OCP */
+bool bat_ocp_disable = true;           /* disable input current OCP */
 //ti,bq2597x_charger,bat-ocp-alarm-disable
-bool bat_ocp_alarm_disable = false;           /* disable input current regulation */
+bool bat_ocp_alarm_disable = true;           /* disable input current regulation */
 //ti,bq2597x_charger,bat-ucp-alarm-disable
-bool bat_ucp_alarm_disable = false;          /* disable BUS temperature monitor (prot/alarm) */
+bool bat_ucp_alarm_disable = true;          /* disable BUS temperature monitor (prot/alarm) */
 //ti,bq2597x_charger,bat-ucp-disable
-bool bat_ucp_disable = false;          /* disable BAT temperature monitor (prot/alarm) */
+bool bat_ucp_disable = true;          /* disable BAT temperature monitor (prot/alarm) */
 
 //ti,bq2597x_charger,bus-ovp-alarm-disable
 bool bus_ovp_alarm_disable = false;         /* disable die temperature protection */
@@ -41,11 +41,11 @@ bool bus_ocp_disable = false;          /* disable die temperature regulation */
 bool bus_ocp_alarm_disable = false;      /* disable reverse current protection */
 
 //ti,bq2597x_charger,bat-therm-disable
-bool bat_therm_disable = false;      /* disable reverse current protection */
+bool bat_therm_disable = true;      /* disable reverse current protection */
 //ti,bq2597x_charger,bus-therm-disable
-bool bus_therm_disable = false;      /* disable reverse current protection */
+bool bus_therm_disable = true;      /* disable reverse current protection */
 //ti,bq2597x_charger,die-therm-disable
-bool die_therm_disable = false;      /* disable reverse current protection */
+bool die_therm_disable = true;      /* disable reverse current protection */
 
 enum {
 	ADC_IBUS,
@@ -60,20 +60,20 @@ enum {
 	ADC_MAX_NUM,
 };
 
-#define BQ25970_ROLE_STDALONE 0
-#define BQ25970_ROLE_SLAVE 1
-#define BQ25970_ROLE_MASTER 2
+#define BQ2597X_ROLE_STDALONE 0
+#define BQ2597X_ROLE_SLAVE 1
+#define BQ2597X_ROLE_MASTER 2
 
 enum {
-    BQ25970_STDALONE,
-    BQ25970_SLAVE,
-    BQ25970_MASTER,
+    BQ2597X_STDALONE,
+    BQ2597X_SLAVE,
+    BQ2597X_MASTER,
 };
 
 NTSTATUS bq2597x_mode_data[] = {
-    [BQ25970_STDALONE] = BQ25970_STDALONE,
-    [BQ25970_MASTER] = BQ25970_ROLE_MASTER,
-    [BQ25970_SLAVE] = BQ25970_ROLE_SLAVE,
+    [BQ2597X_STDALONE] = BQ2597X_STDALONE,
+    [BQ2597X_MASTER] = BQ2597X_ROLE_MASTER,
+    [BQ2597X_SLAVE] = BQ2597X_ROLE_SLAVE,
 };
 
 #define	BAT_OVP_ALARM		BIT(7)
@@ -138,9 +138,10 @@ NTSTATUS bq2597x_mode_data[] = {
 #define IBAT_REG_STATUS_MASK		(1 << VBAT_REG_STATUS_SHIFT)
 
 enum hvdcp3_type {
-    HVDCP3_NONE = 0,
-    HVDCP3_CLASSA_18W,
-    HVDCP3_CLASSB_27W,
+	HVDCP3_NONE = 0,
+	HVDCP3_CLASSA_18W,
+	HVDCP3_CLASSB_27W,
+	HVDCP3P5,
 };
 
 #define BUS_OVP_FOR_QC			10000
@@ -149,6 +150,8 @@ enum hvdcp3_type {
 #define BUS_OCP_ALARM_FOR_QC_CLASS_A			2000
 #define BUS_OCP_FOR_QC_CLASS_B			3750
 #define BUS_OCP_ALARM_FOR_QC_CLASS_B			2800
+#define BUS_OCP_FOR_QC3P5				3500
+#define BUS_OCP_ALARM_FOR_QC3P5					2500
 
 struct bq2597x_cfg {
     bool bat_ovp_disable;
@@ -262,11 +265,6 @@ NTSTATUS bq2597x_read_reg_word(
 
     status = SpbWriteRead(&pDevice->I2CContext, &reg, sizeof(reg), data, sizeof(data), 0);
 
-    TraceEvents(
-        TRACE_LEVEL_ERROR,
-        TRACE_DEVICE,
-        "reg=%d data=%d", reg, *data);
-
     return 0;
 }
 
@@ -293,11 +291,6 @@ NTSTATUS bq2597x_update_reg(
         status = STATUS_SUCCESS;
         return status;
     }
-
-    TraceEvents(
-        TRACE_LEVEL_ERROR,
-        TRACE_DEVICE,
-        "data=%d temp_val=%d mask=%d ~mask=%d val=%d", data, temp_val, mask, ~mask, val);
 
     status = bq2597x_write_reg(pDevice, reg, temp_val);
 
@@ -1053,11 +1046,11 @@ NTSTATUS bq2597x_get_work_mode(PBQ2597X_CONTEXT pDevice, int* mode)
 
     val = (val & BQ2597X_MS_MASK) >> BQ2597X_MS_SHIFT;
     if (val == BQ2597X_MS_MASTER)
-        *mode = BQ25970_ROLE_MASTER;
+        *mode = BQ2597X_ROLE_MASTER;
     else if (val == BQ2597X_MS_SLAVE)
-        *mode = BQ25970_ROLE_SLAVE;
+        *mode = BQ2597X_ROLE_SLAVE;
     else
-        *mode = BQ25970_ROLE_STDALONE;
+        *mode = BQ2597X_ROLE_STDALONE;
 
     return ret;
 }
@@ -1102,19 +1095,19 @@ NTSTATUS bq2597x_init_protection(PBQ2597X_CONTEXT pDevice)
     ret = bq2597x_enable_bat_therm(pDevice, !bat_therm_disable);
     ret = bq2597x_enable_bus_therm(pDevice, !bus_therm_disable);
     ret = bq2597x_enable_die_therm(pDevice, !die_therm_disable);
-    ret = bq2597x_set_batovp_th(pDevice, !bat_ovp_th);
-    ret = bq2597x_set_batovp_alarm_th(pDevice, !bat_ovp_alarm_th);
-    ret = bq2597x_set_batocp_th(pDevice, !bat_ocp_th);
-    ret = bq2597x_set_batocp_alarm_th(pDevice, !bat_ocp_alarm_th);
-    ret = bq2597x_set_busovp_th(pDevice, !bus_ovp_th);
-    ret = bq2597x_set_busovp_alarm_th(pDevice, !bus_ovp_alarm_th);
-    ret = bq2597x_set_busocp_th(pDevice, !bus_ocp_th);
-    ret = bq2597x_set_busocp_alarm_th(pDevice, !bus_ocp_alarm_th);
-    ret = bq2597x_set_batucp_alarm_th(pDevice, !bat_ucp_alarm_th);
-    ret = bq2597x_set_bat_therm_th(pDevice, !bat_therm_th);
-    ret = bq2597x_set_bus_therm_th(pDevice, !bus_therm_th);
-    ret = bq2597x_set_die_therm_th(pDevice, !die_term_th);
-    ret = bq2597x_set_acovp_th(pDevice, !ac_ovp_th);
+    ret = bq2597x_set_batovp_th(pDevice, bat_ovp_th);
+    ret = bq2597x_set_batovp_alarm_th(pDevice, bat_ovp_alarm_th);
+    ret = bq2597x_set_batocp_th(pDevice, bat_ocp_th);
+    ret = bq2597x_set_batocp_alarm_th(pDevice, bat_ocp_alarm_th);
+    ret = bq2597x_set_busovp_th(pDevice, bus_ovp_th);
+    ret = bq2597x_set_busovp_alarm_th(pDevice, bus_ovp_alarm_th);
+    ret = bq2597x_set_busocp_th(pDevice, bus_ocp_th);
+    ret = bq2597x_set_busocp_alarm_th(pDevice, bus_ocp_alarm_th);
+    ret = bq2597x_set_batucp_alarm_th(pDevice, bat_ucp_alarm_th);
+    ret = bq2597x_set_bat_therm_th(pDevice, bat_therm_th);
+    ret = bq2597x_set_bus_therm_th(pDevice, bus_therm_th);
+    ret = bq2597x_set_die_therm_th(pDevice, die_term_th);
+    ret = bq2597x_set_acovp_th(pDevice, ac_ovp_th);
 
     return 0;
 }
@@ -1135,6 +1128,9 @@ NTSTATUS bq2597x_set_bus_protection(PBQ2597X_CONTEXT pDevice, int hvdcp3_type)
         data3 = BUS_OCP_FOR_QC_CLASS_B;
         data4 = BUS_OCP_ALARM_FOR_QC_CLASS_B;
         break;
+    case HVDCP3P5:
+        data3 = BUS_OCP_FOR_QC3P5;
+        data4 = BUS_OCP_ALARM_FOR_QC3P5;
     default:
         data = bus_ovp_th;
         data2 = bus_ovp_alarm_th;
@@ -1229,6 +1225,8 @@ NTSTATUS bq2597x_init_device(PBQ2597X_CONTEXT pDevice)
 
     bq2597x_init_regulation(pDevice);
 
+    bq2597x_get_work_mode(pDevice, &pDevice->mode);
+
     return 0;
 }
 
@@ -1252,7 +1250,7 @@ NTSTATUS bq2597x_set_present(PBQ2597X_CONTEXT pDevice, bool present)
     int idx = 0;
     NTSTATUS ret;
 
-    idx = snprintf(buf, PAGE_SIZE, "%s:\n", "bq25970");
+    idx = snprintf(buf, PAGE_SIZE, "%s:\n", "bq2597x");
     for (addr = 0x0; addr <= 0x2A; addr++) {
         ret = bq2597x_read_byte(bq, addr, &val);
         if (ret == 0) {
@@ -1408,9 +1406,9 @@ NTSTATUS bq2597x_charger_get_property(struct power_supply* psy,
             val->strval = "unknown";
         }
         else {
-            if (bq->mode == BQ25970_ROLE_MASTER)
+            if (bq->mode == BQ2597X_ROLE_MASTER)
                 val->strval = "bq2597x-master";
-            else if (bq->mode == BQ25970_ROLE_SLAVE)
+            else if (bq->mode == BQ2597X_ROLE_SLAVE)
                 val->strval = "bq2597x-slave";
             else
                 val->strval = "bq2597x-standalone";
@@ -1602,6 +1600,8 @@ static void bq2597x_dump_reg(PBQ2597X_CONTEXT pDevice)
 
 static void bq2597x_charger_shutdown(PBQ2597X_CONTEXT pDevice)
 {
+    bq2597x_enable_charge(pDevice, false);
+    bq2597x_set_bus_protection(pDevice, 0);
     bq2597x_enable_adc(pDevice, false);
 }
 
@@ -1828,12 +1828,12 @@ Status
     status = bq2597x_detect_device(pDevice);
     if (status) {
         TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE,
-            "Failed to detect bq25970");
+            "Failed to detect bq2597x");
         return STATUS_IO_DEVICE_ERROR;
     }
     else {
         TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE,
-            "Device id=0x%x", status);
+            "BQ2597X Part Num: %d", pDevice->part_no);
     }
 
     status = bq2597x_init_device(pDevice);
@@ -1841,6 +1841,10 @@ Status
         TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE,
             "Failed to init device");
         return STATUS_IO_DEVICE_ERROR;
+    }
+    else {
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE,
+            "BQ Work Mode = %d", pDevice->mode);
     }
 
     status = WdfWaitLockCreate(
@@ -1860,25 +1864,27 @@ Status
     determine_initial_status(pDevice);
 
     pDevice->volt_qual = true;
-    unsigned int shit = 0;
+
+    bq2597x_check_charge_enabled(pDevice, &pDevice->charge_enabled);
 
     TraceEvents(
         TRACE_LEVEL_ERROR,
         TRACE_DEVICE,
-        "charge reg = %d", bq2597x_read_reg(pDevice, BQ2597X_REG_0C, &shit));
-
-    if (pDevice->volt_qual) {
-        TraceEvents(
-            TRACE_LEVEL_ERROR,
-            TRACE_DEVICE,
-            "start charging on init\n");
-        bq2597x_enable_charge(pDevice, true);
-    }
+        "charge reg = %d", pDevice->charge_enabled);
 
     TraceEvents(
         TRACE_LEVEL_ERROR,
         TRACE_DEVICE,
-        "charge reg = %d", bq2597x_read_reg(pDevice, BQ2597X_REG_0C, &shit));
+        "start charging on init = %d\n", pDevice->volt_qual);
+    bq2597x_set_bus_protection(pDevice, 3);
+    bq2597x_enable_charge(pDevice, pDevice->volt_qual);
+
+    bq2597x_check_charge_enabled(pDevice, &pDevice->charge_enabled);
+
+    TraceEvents(
+        TRACE_LEVEL_ERROR,
+        TRACE_DEVICE,
+        "charge reg = %d", pDevice->charge_enabled);
 
     TraceEvents(
         TRACE_LEVEL_ERROR,

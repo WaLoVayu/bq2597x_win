@@ -8,7 +8,7 @@ Class       = Battery
 ClassGuid   = {72631E54-78A4-11D0-BCF7-00AA00B7B32A}
 Provider    = %ManufacturerName%
 CatalogFile = bq2597x.cat
-DriverVer   = 01/01/2023,1.0.0.1
+DriverVer   = 10/03/2025,2.0.0.0
 PnpLockdown = 1
 
 [DestinationDirs]
@@ -32,21 +32,33 @@ bq2597x.sys  = 1,,
 ; Decorated model section take precedence over undecorated 
 ; ones on XP and later.
 [Standard.NT$ARCH$]
-%bq2597x.DeviceDesc%=bq2597x_Device, ACPI\BQ25970
+%bq25970.DeviceDesc%=bq25970_Device, ACPI\BQ25970
+%bq25960.DeviceDesc%=bq25960_Device, ACPI\BQ25960
 
-[bq2597x_Device.NT]
+[bq25970_Device.NT]
+CopyFiles=Drivers_Dir
+[bq25960_Device.NT]
 CopyFiles=Drivers_Dir
 
 [Drivers_Dir]
 bq2597x.sys
 
 ;-------------- Service installation
-[bq2597x_Device.NT.Services]
-AddService = bq2597x,%SPSVCINST_ASSOCSERVICE%, bq2597x_Service_Inst
+[bq25970_Device.NT.Services]
+AddService = bq25970,%SPSVCINST_ASSOCSERVICE%, bq25970_Service_Inst
+[bq25960_Device.NT.Services]
+AddService = bq25960,%SPSVCINST_ASSOCSERVICE%, bq25960_Service_Inst
 
 ; -------------- bq2597x driver install sections
-[bq2597x_Service_Inst]
-DisplayName    = %bq2597x.SVCDESC%
+[bq25970_Service_Inst]
+DisplayName    = %bq25970.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START 
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\bq2597x.sys
+LoadOrderGroup = Base
+[bq25960_Service_Inst]
+DisplayName    = %bq25960.SVCDESC%
 ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
 StartType      = 3               ; SERVICE_DEMAND_START 
 ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
@@ -56,6 +68,8 @@ LoadOrderGroup = Base
 [Strings]
 SPSVCINST_ASSOCSERVICE= 0x00000002
 ManufacturerName   = "remtrik"
-DiskName           = "TI BQ25970 Installation Disk"
-bq2597x.DeviceDesc = "Texas Instruments BQ25970 Charger"
-bq2597x.SVCDESC    = "BQ25970 Service"
+DiskName           = "TI BQ2597X Installation Disk"
+bq25970.DeviceDesc = "Texas Instruments BQ25970 Charger"
+bq25970.SVCDESC    = "BQ25970 Service"
+bq25960.DeviceDesc = "Texas Instruments BQ25960 Charger"
+bq25960.SVCDESC    = "BQ25960 Service"
